@@ -77,8 +77,6 @@ export default function Home() {
 
   const [isVerified, setIsVerified] = useState(false);
   //const [loading, setLoading] = useState(true);
-
-  // Function to handle verification via gplinks.com
   const handleVerify = async () => {
     const apiKey = "e5bf7301b4ad442d45481de99fd656a182ec6507"; // Your gplinks API Key
     const callbackUrl = `${window.location.origin}/?verified=true`;
@@ -97,6 +95,7 @@ export default function Home() {
       });
 
       const data = await response.json();
+      console.log(data); // Log the response for debugging
 
       if (data.status === "success" && data.shortenedUrl) {
         // Redirect user to gplinks verification page
@@ -111,27 +110,36 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isVerifiedParam = params.get("verified");
-    const token = localStorage.getItem("token");
-    const expiry = localStorage.getItem("expiry");
+    const verifyUser = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const isVerifiedParam = params.get("verified");
+        const token = localStorage.getItem("token");
+        const expiry = localStorage.getItem("expiry");
 
-    if (isVerifiedParam === "true") {
-      // Generate and store a new token valid for 24 hours
-      const newToken = Math.random().toString(36).substr(2);
-      const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours
-      localStorage.setItem("token", newToken);
-      localStorage.setItem("expiry", expiryTime.toString());
-      setIsVerified(true);
-      setLoading(false);
-    } else if (token && expiry && new Date().getTime() < Number(expiry)) {
-      // If token exists and is still valid
-      setIsVerified(true);
-      setLoading(false);
-    } else {
-      // If no valid token is found
-      setLoading(false);
-    }
+        if (isVerifiedParam === "true") {
+          // Generate and store a new token valid for 24 hours
+          const newToken = Math.random().toString(36).substr(2);
+          const expiryTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 hours
+          localStorage.setItem("token", newToken);
+          localStorage.setItem("expiry", expiryTime.toString());
+          setIsVerified(true);
+          setLoading(false);
+        } else if (token && expiry && new Date().getTime() < Number(expiry)) {
+          // If token exists and is still valid
+          setIsVerified(true);
+          setLoading(false);
+        } else {
+          // If no valid token is found
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error in useEffect:", error);
+        setLoading(false);
+      }
+    };
+
+    verifyUser();
   }, []);
 
   if (loading) {
@@ -160,6 +168,8 @@ export default function Home() {
       </div>
     );
 }
+  
+    
 
   return (
 
